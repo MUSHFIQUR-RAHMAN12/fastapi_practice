@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Body
+from fastapi import FastAPI,Body,Query,Path
 from todomodel import Todo
 from datetime import datetime
 from todorequest import Todorequest
@@ -28,3 +28,37 @@ def get_todo_id(todo):
     else:
         todo.id=Todos[-1].id+1
     return todo
+
+
+@app.put("/todos/update")
+async def todo_update(todo: Todorequest):
+    t =Todo(**todo.dict())
+    for i in range(len(Todos)):
+        if Todos[i].id==t.id:
+            Todos[i]=t
+            return t    
+        
+@app.delete("/todos/delete/{id}")
+async def delete_todo(id:int=Path(ge=1)):
+    for i in range(len(Todos)):
+        if Todos[i].id==id:
+            del Todos[i]
+            return {"message": "Todo deleted successfully"}
+    return {"message": "Todo not found"}
+
+
+
+@app.get("/todos/{id}")
+async def get_todo_by_id(id:int=Path(ge=1)):
+    for i in range(len(Todos)):
+        if Todos[i].id==id:
+            return Todos[i]
+    return {"message": "Todo not found"}
+
+@app.get("/todos/priority/",status_code=200)
+async def get_todo_by_priority(priority:int=Query(ge=1, le=5)):
+    result=[]
+    for i in range(len(Todos)):
+        if Todos[i].priority==priority:
+            result.append(Todos[i])
+    return result   
