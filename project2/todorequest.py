@@ -7,3 +7,12 @@ class Todorequest(BaseModel):
     description: str = Field(min_length=2, max_length=50)
     completed: Optional[bool]=Field(default=False)
     priority: int = Field(ge=1, le=5)
+
+    model_config = {"json_schema_extra": {
+        "example": {
+            "title": "Buy any groceries",
+            "description": "Milk, Bread, Eggs",
+            "completed": False,
+            "priority": 1
+        }
+    }}
