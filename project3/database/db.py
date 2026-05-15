@@ -15,7 +15,7 @@ engine=create_engine(db_url, echo=True)
 
 
 def create_tables():
-    SQLModel.metadata.drop_all(engine)   # deletes all tables
+    #SQLModel.metadata.drop_all(engine)   # deletes all tables
     SQLModel.metadata.create_all(engine) # recreates fresh
 @contextmanager
 def get_session_context():
