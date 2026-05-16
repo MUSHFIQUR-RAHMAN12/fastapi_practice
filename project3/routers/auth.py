@@ -1,16 +1,18 @@
 from fastapi import APIRouter,Depends,status,HTTPException
 from database.db import sessiondependency
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing import Annotated
 from models.user import User
 from responsemodel.userres import UserResponse
 from requestmodel.userreq import UserRequest
 from sqlmodel import select
-from passlib.context import CryptContext
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from datetime import datetime, timedelta
+from utility import check_user_credentials,get_password_hash,create_jwt_token
 
 
-#encode password
-def get_password_hash(password):
-    return pwd_context.hash(password)
+
+
+
 
 
 router=APIRouter(prefix="/auth",tags=["auth"])
@@ -34,3 +36,19 @@ async def register(usereq:UserRequest,session:sessiondependency):
     session.refresh(user)
     return user  
 
+@router.post("/login")
+async def login(form_data:Annotated[OAuth2PasswordRequestForm, Depends()],session:sessiondependency):
+    email=form_data.username
+    password=form_data.password
+
+    # validate user credentials
+    authorized_user = await check_user_credentials(email,password,session)
+    if not authorized_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    #jwttoken generation logic here
+    data={"sub": authorized_user.email,
+          "user_id": authorized_user.id,
+          "username": authorized_user.username}
+    token_dict = await create_jwt_token(data, timedelta(minutes=30))
+
+    return token_dict
